@@ -1,0 +1,12 @@
+.CheckOutSummary{
+  width: 300px;
+  overflow: auto;
+  text-align: center;
+  margin: auto;
+}
+
+@media (min-width: 500px) {
+  .CheckOutSummary{
+    width: 80%;
+  }
+}
