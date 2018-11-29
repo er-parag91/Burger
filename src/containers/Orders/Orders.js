@@ -1,45 +1,65 @@
 import React, { Component } from 'react';
 import Order from '../../components/Orders/Order';
+import { connect } from 'react-redux';
 import axios from '../../axios-orders';
+import * as actions from '../../store/actions/index';
+import Spinner from '../../components/UI/Spinner/Spinner';
 class Orders extends Component {
   state = {
-    orders: [],
-    loading: true,
     error: false,
   };
   componentDidMount () {
-    const fetchedOrders = [];
-    axios
-      .get ('orders.json')
-      .then (res => {
-        for (let key in res.data) {
-          fetchedOrders.push ({
-            ...res.data[key],
-            id: key,
-          });
-        }
-        this.setState ({ loading: false, orders: fetchedOrders });
-      })
-      .catch (error => {
-        this.setState ({ error: true });
-      });
+    this.props.onFetchorders (this.props.token, this.props.userId);
   }
   render () {
+    let orders = <Spinner />;
+    if (this.props.error) {
+      orders = (
+        <div
+          style={{
+            textAlign: 'center',
+            border: '1px solid grey',
+            width: '90%',
+            margin: 'auto',
+            boxShadow: '0 2px 3px black',
+          }}>
+          <h1>You are not signed in</h1>
+          <p>Accessing placed order requires sign in</p>
+        </div>
+      );
+    }
+    if (!this.props.error) {
+      orders = this.props.orders.map (order => (
+        <Order
+          key={order.id}
+          name={order.name}
+          Date={order.Date}
+          ingredients={order.ingredients}
+          price={+order.price}
+        />
+      ));
+    }
     return (
       <div>
-        {this.state.orders.map (order => {
-          return (
-            <Order
-              key={order.id}
-              name={order.name}
-              ingredients={order.ingredients}
-              price={+order.price}
-            />
-          );
-        })}
+        {orders}
       </div>
     );
   }
 }
+const mapStateToProps = state => {
+  return {
+    orders: state.order.orders,
+    loading: state.order.loading,
+    token: state.auth.token,
+    error: state.order.error,
+    userId: state.auth.userId,
+  };
+};
+const mapDispatchToProps = dispatch => {
+  return {
+    onFetchorders: (token, userId) =>
+      dispatch (actions.fetchOrders (token, userId)),
+  };
+};
 
-export default Orders;
+export default connect (mapStateToProps, mapDispatchToProps) (Orders, axios);

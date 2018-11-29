@@ -5,22 +5,17 @@ import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
-import axios from '../../axios-orders.js';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import { connect } from 'react-redux';
-import * as actionTypes from '../../store/actions';
+import * as actions from '../../store/actions/index';
 
 class burgerBuilder extends Component {
   state = {
-    purchable: false,
     purchasing: false,
-    loading: false,
   };
 
   componentDidMount () {
-    axios
-      .get ('https://myburger-4d493.firebaseio.com/ingredients.json')
-      .then (response => this.setState ({ ingredients: response.data }));
+    this.props.onInitIngredients ();
   }
   updatePurchasing (ingredients) {
     const sum = Object.keys (ingredients)
@@ -37,11 +32,17 @@ class burgerBuilder extends Component {
     this.setState ({ purchasing: false });
   };
   purchaseContinueHandler = () => {
+    this.props.onInitPurchase ();
     this.props.history.push ('/checkout');
   };
 
   purchaseHandler = () => {
-    this.setState ({ purchasing: true });
+    if (this.props.isAuthenticated) {
+      this.setState ({ purchasing: true });
+    } else {
+      this.props.onSetAuthRedirectPath ('/checkout');
+      this.props.history.push ('/auth');
+    }
   };
   render () {
     let disabledInfo = {
@@ -63,6 +64,7 @@ class burgerBuilder extends Component {
             disabled={disabledInfo}
             price={this.props.price}
             purchable={!this.updatePurchasing (this.props.ings)}
+            isAuth={this.props.isAuthenticated}
             ordered={this.purchaseHandler}
           />
         </Ext>
@@ -76,9 +78,7 @@ class burgerBuilder extends Component {
         />
       );
     }
-    if (this.state.loading) {
-      orderSummary = <Spinner />;
-    }
+
     return (
       <Ext>
         <Modal
@@ -94,20 +94,20 @@ class burgerBuilder extends Component {
 
 const mapStateToProps = state => {
   return {
-    ings: state.ingredients,
-    price: state.totalPrice,
+    ings: state.burgerBuilder.ingredients,
+    price: state.burgerBuilder.totalPrice,
+    isAuthenticated: state.auth.token !== null,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    onIngredientAdd: igName =>
-      dispatch ({ type: actionTypes.ADD_INGREDIENT, ingredientName: igName }),
-    onIngredientRemoved: igName =>
-      dispatch ({
-        type: actionTypes.REMOVE_INGREDIENT,
-        ingredientName: igName,
-      }),
+    onIngredientAdd: igName => dispatch (actions.addIngredients (igName)),
+    onIngredientRemoved: igName => dispatch (actions.removeIngredient (igName)),
+    onInitIngredients: () => dispatch (actions.initIngredients ()),
+    onInitPurchase: () => dispatch (actions.purchaseInit ()),
+    onSetAuthRedirectPath: path =>
+      dispatch (actions.setAuthRedirectPath (path)),
   };
 };
 

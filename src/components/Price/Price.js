@@ -4,6 +4,17 @@ import classes from './Price.css';
 const price = () => {
   return (
     <div className={classes.Price}>
+      <h4
+        style={{
+          display: 'block',
+          width: '100%',
+          background: '#009688',
+          padding: '8px',
+          margin: '10px 10%',
+          borderBottom: '4px solid #022723',
+        }}>
+        Ingredients Prices :
+      </h4>
       <div className={classes.columns}>
         <ul className={classes.price}>
           <li className={classes.salad}>Salad</li>

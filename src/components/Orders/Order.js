@@ -29,6 +29,7 @@ const order = props => {
       <h4>Hey, {props.name}, Here is your Recent Order: </h4>
       <p>Ingredients: {ingredientOutput}</p>
       <p>Price: <strong>USD {props.price.toFixed (2)}</strong></p>
+      <p>Order placed date : {props.Date}</p>
     </div>
   );
 };
